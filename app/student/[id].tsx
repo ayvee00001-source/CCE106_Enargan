@@ -1,28 +1,77 @@
-/* eslint-disable @typescript-eslint/no-unused-vars -- State setters and loader are exam placeholders. */
 import { useEffect, useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { type Student } from '@/components/StudentCard';
+import { API_BASE_URL } from '@/constants/api';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function StudentDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const { token, logout } = useAuth();
   const [student, setStudent] = useState<Student | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   const loadStudent = async () => {
-    // TODO EXAM: Validate the id read from useLocalSearchParams().
-    // TODO EXAM: Set loading and clear previous errors.
-    // TODO EXAM: GET /students/{id} with fetch(), async/await, and a Bearer token.
-    // TODO EXAM: Check response.ok; handle 401 Unauthorized and missing records.
-    // TODO EXAM: Parse JSON and update student state.
-    // TODO EXAM: Handle errors and stop loading in finally.
+    const studentId = Array.isArray(id) ? id[0] : id;
+
+    if (!studentId) {
+      setError('Student ID is required.');
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+    setStudent(null);
+
+    try {
+      if (!token) {
+        throw new Error('You are not authenticated.');
+      }
+
+      const response = await fetch(
+        `${API_BASE_URL}/students/${encodeURIComponent(studentId)}`,
+        {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.status === 401) {
+        await logout();
+        throw new Error('Your session has expired. Please sign in again.');
+      }
+
+      if (response.status === 404) {
+        throw new Error('Student record not found.');
+      }
+
+      if (!response.ok) {
+        throw new Error(`Failed to load student (${response.status}).`);
+      }
+
+      const data = await response.json();
+      const record = data?.student ?? data?.data ?? data;
+
+      if (!record || typeof record !== 'object') {
+        throw new Error('Student record was not returned by the server.');
+      }
+
+      setStudent(record as Student);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to load student.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-    // TODO EXAM: Call loadStudent() when id changes.
-  }, [id]);
+    loadStudent();
+  }, [id, token]);
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
