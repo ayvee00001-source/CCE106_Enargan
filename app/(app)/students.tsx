@@ -1,36 +1,75 @@
-/* eslint-disable @typescript-eslint/no-unused-vars -- State setters and loader are exam placeholders. */
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import StudentCard, { type Student } from '@/components/StudentCard';
+import { API_BASE_URL } from '@/constants/api';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function StudentsScreen() {
+  const { token, logout } = useAuth();
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
 
   const loadStudents = async () => {
-    // TODO EXAM: 1. Set loading and clear previous errors.
-    // TODO EXAM: 2. Call GET /students using fetch() and async/await.
-    // TODO EXAM: 3. Include Authorization: Bearer TOKEN from useAuth() if required.
-    // TODO EXAM: 4. Check response.ok and handle 401 Unauthorized.
-    // TODO EXAM: 5. Parse JSON and save the student array to state.
-    // TODO EXAM: 6. Handle errors and stop loading inside finally.
+    setLoading(true);
+    setError('');
+
+    try {
+      if (!token) {
+        throw new Error('You are not authenticated.');
+      }
+
+      const response = await fetch(`${API_BASE_URL}/students`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.status === 401) {
+        await logout();
+        throw new Error('Your session has expired. Please sign in again.');
+      }
+
+      if (!response.ok) {
+        throw new Error(`Failed to load students (${response.status}).`);
+      }
+
+      const data = await response.json();
+
+      const studentList = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.students)
+          ? data.students
+          : Array.isArray(data?.data)
+            ? data.data
+            : [];
+
+      setStudents(studentList);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to load students.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-    // TODO EXAM: Call loadStudents() when the screen loads.
-  }, []);
+    loadStudents();
+  }, [token]);
 
-  // TODO EXAM: Use filter() to return students whose name matches the search text.
-  const filteredStudents = students;
+  const filteredStudents = students.filter((student) => {
+    const name = student.name ?? '';
+
+    return name.toLowerCase().includes(search.trim().toLowerCase());
+  });
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Students</Text>
       <TextInput style={styles.input} accessibilityLabel="Search students" placeholder="Search by name" value={search} onChangeText={setSearch} />
       {loading ? (
-        <View style={styles.state}><ActivityIndicator color="#245bb2" /><Text style={styles.text}>Loading students…</Text><Text style={styles.note}>Complete loadStudents() to finish this state.</Text></View>
+        <View style={styles.state}><ActivityIndicator color="#245bb2" /><Text style={styles.text}>Loading students…</Text><Text style={styles.note}>Loading student records…</Text></View>
       ) : error ? (
         <View style={styles.state} accessibilityLiveRegion="polite"><Text style={styles.error}>{error}</Text><Pressable accessibilityRole="button" onPress={loadStudents}><Text style={styles.link}>Try Again</Text></Pressable></View>
       ) : (
