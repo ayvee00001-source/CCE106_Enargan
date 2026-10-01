@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars -- Setters are reserved for the login exercise. */
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { router } from 'expo-router';
+import { API_BASE_URL } from '@/constants/api';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function SignInScreen() {
   const [email, setEmail] = useState('');
@@ -8,14 +11,60 @@ export default function SignInScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  const { login } = useAuth();
+
   const handleLogin = async () => {
-    // TODO EXAM: 1. Validate email and password.
-    // TODO EXAM: 2. Set loading and clear previous errors.
-    // TODO EXAM: 3. POST to /login using fetch() and async/await.
-    // TODO EXAM: 4. Check response.ok and parse the returned JSON.
-    // TODO EXAM: 5. Pass the returned access token and user to the context login().
-    // TODO EXAM: 6. Navigate using router.replace() after successful authentication.
-    // TODO EXAM: 7. Handle login errors and stop loading in finally.
+    if (!email.trim() || !password) {
+      setError('Please enter your email and password.');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email.trim(),
+          password,
+        }),
+      });
+
+      let data: any = null;
+
+      try {
+        data = await response.json();
+      } catch {
+        data = null;
+      }
+
+      if (!response.ok) {
+        throw new Error(
+          data?.message ||
+            data?.error ||
+            `Login failed with status ${response.status}.`
+        );
+      }
+
+      const accessToken = data?.accessToken ?? data?.token;
+      const user = data?.user ?? data?.profile;
+
+      if (!accessToken) {
+        throw new Error('Login succeeded, but no access token was returned.');
+      }
+
+      await login(accessToken, user ?? { email: email.trim() });
+
+      router.replace('/(app)');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to sign in.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -35,7 +84,7 @@ export default function SignInScreen() {
         <Pressable accessibilityRole="button" style={styles.button} onPress={handleLogin} disabled={loading}>
           <Text style={styles.buttonText}>{loading ? 'Signing in…' : 'Login'}</Text>
         </Pressable>
-        <Text style={styles.note}>Exam starter: login is not implemented yet.</Text>
+        <Text style={styles.note}>Use your assigned student account to sign in.</Text>
       </View>
     </ScrollView>
   );
