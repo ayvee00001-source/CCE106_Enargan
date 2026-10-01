@@ -1,5 +1,12 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { useAuth } from '@/hooks/useAuth';
 import { API_BASE_URL } from '@/constants/api';
 
@@ -45,14 +52,19 @@ export default function ProfileScreen() {
 
       setProfile(profileData);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unable to load profile.');
+      setError(
+        err instanceof Error ? err.message : 'Unable to load profile.'
+      );
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    // The loader intentionally updates loading/data/error state after the API request.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadProfile();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   return (
@@ -69,15 +81,27 @@ export default function ProfileScreen() {
           <Text style={styles.error} accessibilityLiveRegion="polite">
             {error}
           </Text>
-          <Pressable accessibilityRole="button" onPress={loadProfile}>
+
+          <Pressable
+            accessibilityRole="button"
+            onPress={loadProfile}
+          >
             <Text style={styles.link}>Try Again</Text>
           </Pressable>
         </View>
       ) : (
         <View style={styles.card}>
-          <Text style={styles.text}>Name: {profile?.name || '—'}</Text>
-          <Text style={styles.text}>Email: {profile?.email || '—'}</Text>
-          <Text style={styles.text}>Role: {profile?.role || '—'}</Text>
+          <Text style={styles.text}>
+            Name: {profile?.name || '—'}
+          </Text>
+
+          <Text style={styles.text}>
+            Email: {profile?.email || '—'}
+          </Text>
+
+          <Text style={styles.text}>
+            Role: {profile?.role || '—'}
+          </Text>
         </View>
       )}
 
@@ -98,14 +122,48 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flexGrow: 1, padding: 24, gap: 20, backgroundColor: '#f2f5fa' },
-  title: { color: '#17324d', fontSize: 24, fontWeight: '700' },
-  card: { backgroundColor: '#ffffff', padding: 20, gap: 16, borderRadius: 12 },
-  state: { padding: 24, gap: 12, alignItems: 'center' },
-  text: { color: '#536579', fontSize: 16 },
-  note: { color: '#536579', fontSize: 12 },
-  error: { color: '#b42318' },
-  link: { color: '#245bb2', fontWeight: '600', paddingVertical: 8 },
-  button: { backgroundColor: '#245bb2', padding: 16, borderRadius: 8, alignItems: 'center' },
-  buttonText: { color: '#ffffff', fontWeight: '600' },
+  container: {
+    flexGrow: 1,
+    padding: 24,
+    gap: 20,
+    backgroundColor: '#f2f5fa',
+  },
+  title: {
+    color: '#17324d',
+    fontSize: 24,
+    fontWeight: '700',
+  },
+  card: {
+    backgroundColor: '#ffffff',
+    padding: 20,
+    gap: 16,
+    borderRadius: 12,
+  },
+  state: {
+    padding: 24,
+    gap: 12,
+    alignItems: 'center',
+  },
+  text: {
+    color: '#536579',
+    fontSize: 16,
+  },
+  error: {
+    color: '#b42318',
+  },
+  link: {
+    color: '#245bb2',
+    fontWeight: '600',
+    paddingVertical: 8,
+  },
+  button: {
+    backgroundColor: '#245bb2',
+    padding: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#ffffff',
+    fontWeight: '600',
+  },
 });
