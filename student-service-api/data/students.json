@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "studentId": "20260001",
+    "name": "Juan Dela Cruz",
+    "email": "juan.delacruz@example.com",
+    "course": "BS Information Technology",
+    "yearLevel": "1st Year"
+  },
+  {
+    "id": 2,
+    "studentId": "20260002",
+    "name": "Maria Santos",
+    "email": "maria.santos@example.com",
+    "course": "BS Computer Science",
+    "yearLevel": "2nd Year"
+  },
+  {
+    "id": 3,
+    "studentId": "20260003",
+    "name": "Pedro Garcia",
+    "email": "pedro.garcia@example.com",
+    "course": "BS Information Systems",
+    "yearLevel": "3rd Year"
+  },
+  {
+    "id": 4,
+    "studentId": "20260004",
+    "name": "Ana Reyes",
+    "email": "ana.reyes@example.com",
+    "course": "BS Information Technology",
+    "yearLevel": "4th Year"
+  },
+  {
+    "id": 5,
+    "studentId": "20260005",
+    "name": "Carlo Mendoza",
+    "email": "carlo.mendoza@example.com",
+    "course": "BS Computer Science",
+    "yearLevel": "1st Year"
+  }
+]
